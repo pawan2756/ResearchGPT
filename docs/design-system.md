@@ -1,0 +1,129 @@
+# Design System Tokens
+
+## Color Variables
+
+```css
+:root {
+  --bg: #F4F6F8;
+  --surface: #FFFFFF;
+  --surface-2: #EEF2F6;
+  --border: #DDE3EA;
+  --border-strong: #C5CED9;
+  --text: #0F1B2D;
+  --text-muted: #5B6B7F;
+  --text-on-primary: #FFFFFF;
+  --nav-bg: #0F1B2D;
+  --nav-hover: #1E3350;
+  --nav-text: #C9D3E0;
+  --primary: #0E7C86;
+  --primary-hover: #0B656D;
+  --primary-soft: #E3F3F4;
+  --focus-ring: 0 0 0 3px rgba(14, 124, 134, 0.35);
+  --success-bg: #DDF3E6;
+  --success-text: #14683A;
+  --warning-bg: #FFF0C2;
+  --warning-text: #6B4B00;
+  --danger-bg: #FDE0DC;
+  --danger-text: #9A2417;
+  --info-bg: #DCEBFF;
+  --info-text: #1B4F9E;
+  --user-bubble-bg: #0E7C86;
+  --user-bubble-text: #FFFFFF;
+  --assistant-bg: #FFFFFF;
+  --consent-bg: #FFF8E1;
+  --consent-border: #F1D98A;
+  --passage-bg: #EAF6F7;
+  --passage-border: #B8DDE0;
+  --chart-1: #0E7C86;
+  --chart-2: #7A8CA3;
+  --chart-3: #C98A00;
+  --chart-4: #1B4F9E;
+  --chart-5: #14683A;
+  --chart-6: #C0392B;
+}
+
+[data-theme="dark"] {
+  --bg: #0B1220;
+  --surface: #121B2B;
+  --surface-2: #1A2638;
+  --border: #26364D;
+  --border-strong: #34475F;
+  --text: #E6EDF5;
+  --text-muted: #9FB0C5;
+  --text-on-primary: #06222A;
+  --nav-bg: #080E19;
+  --nav-hover: #16233A;
+  --nav-text: #9FB0C5;
+  --primary: #3FB7C2;
+  --primary-hover: #5CC7D1;
+  --primary-soft: #12343A;
+  --focus-ring: 0 0 0 3px rgba(63, 183, 194, 0.45);
+  --success-bg: #12301F;
+  --success-text: #7FD9A0;
+  --warning-bg: #3A2E0A;
+  --warning-text: #F0CC6B;
+  --danger-bg: #3D1713;
+  --danger-text: #F2A199;
+  --info-bg: #12294A;
+  --info-text: #8DB7F0;
+  --user-bubble-bg: #1F6F78;
+  --assistant-bg: #121B2B;
+  --consent-bg: #2B2410;
+  --consent-border: #5A4A1A;
+  --passage-bg: #12343A;
+  --passage-border: #1F5A63;
+  --chart-1: #3FB7C2;
+  --chart-2: #8CA0B8;
+  --chart-3: #E0A93A;
+  --chart-4: #6FA3E8;
+  --chart-5: #5CC888;
+  --chart-6: #E5776B;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1220;
+    --surface: #121B2B;
+    --surface-2: #1A2638;
+    --border: #26364D;
+    --border-strong: #34475F;
+    --text: #E6EDF5;
+    --text-muted: #9FB0C5;
+    --text-on-primary: #06222A;
+    --nav-bg: #080E19;
+    --nav-hover: #16233A;
+    --nav-text: #9FB0C5;
+    --primary: #3FB7C2;
+    --primary-hover: #5CC7D1;
+    --primary-soft: #12343A;
+    --focus-ring: 0 0 0 3px rgba(63, 183, 194, 0.45);
+    --success-bg: #12301F;
+    --success-text: #7FD9A0;
+    --warning-bg: #3A2E0A;
+    --warning-text: #F0CC6B;
+    --danger-bg: #3D1713;
+    --danger-text: #F2A199;
+    --info-bg: #12294A;
+    --info-text: #8DB7F0;
+    --user-bubble-bg: #1F6F78;
+    --assistant-bg: #121B2B;
+    --consent-bg: #2B2410;
+    --consent-border: #5A4A1A;
+    --passage-bg: #12343A;
+    --passage-border: #1F5A63;
+    --chart-1: #3FB7C2;
+    --chart-2: #8CA0B8;
+    --chart-3: #E0A93A;
+    --chart-4: #6FA3E8;
+    --chart-5: #5CC888;
+    --chart-6: #E5776B;
+  }
+}
+```
+
+## Typography & Dimensions
+- **Fonts**: IBM Plex Sans for UI, IBM Plex Mono for code.
+- **Sizes**: Title 22px/600, Section 18px/600, Body 16px (Chat line-height 1.7, UI 1.5), Label 14px, Caption 12px.
+- **Spacing**: 4, 8, 12, 16, 20, 24, 32, 40, 48 px.
+- **Radii**: 6px small, 8px controls, 12px cards, 999px pills.
+- **Layout**: Sidebar 220px, Chat Max Width 760px, Sources Panel 380px, Content Max Width 1200px.

@@ -1,0 +1,16 @@
+# Architecture & Engineering Decision Log
+
+| ID | Date | Decision | Why Chosen | Alternatives Considered |
+| :--- | :--- | :--- | :--- | :--- |
+| **DEC-001** | 2026-10-28 | **Plain JavaScript ES Modules (No TypeScript)** | Mandated constraint for simplicity and college viva explainability; prevents compilation complexity and runtime source map discrepancies. | TypeScript, CommonJS |
+| **DEC-002** | 2026-10-28 | **Direct Orchestration (No LangChain / LlamaIndex / Vector DB)** | Clean, readable, modular functions in `server/src/services` make the RAG and scoring pipeline 100% transparent and explainable for viva examination. | LangChain, LlamaIndex, Pinecone, ChromaDB |
+| **DEC-003** | 2026-10-28 | **Monolithic Modular Node Server + React Client** | Eliminates microservice overhead, network latency, and orchestration burden while maintaining strict separation of concerns. | Microservices, Next.js full-stack |
+| **DEC-004** | 2026-10-28 | **React State + Context (No Redux)** | Sufficient for application scope (AuthContext, ChatContext, ThemeContext); avoids boilerplate and excessive action/reducer layers. | Redux Toolkit, Zustand, MobX |
+| **DEC-005** | 2026-10-28 | **"Ask First, Research on Consent" Workflow** | Balances instant LLM responses for static knowledge with deep verification for volatile/current questions, saving API costs and search latency. | Always-on web search, Blind manual toggle |
+| **DEC-006** | 2026-10-28 | **SSE over HTTP POST with Fetch ReadableStream** | Standard `EventSource` only supports GET and cannot send custom `Authorization: Bearer` headers or rich JSON bodies; `fetch` with `ReadableStream` supports streaming POST with auth headers and cancellation via `AbortController`. | Native EventSource (GET with URL query token), WebSockets |
+| **DEC-007** | 2026-10-28 | **Rule-Based Research Score Engine** | Deterministic, transparent, and fast (sub-millisecond) evaluation combining confidence, `needs_research` flag, temporal cues, and hedging patterns. | Classifier LLM call (adds latency & cost), heuristic embeddings |
+| **DEC-008** | 2026-10-28 | **Deterministic Mock Mode** | Enables full end-to-end functionality, UI verification, and CI test execution even when external API keys are not provided. | Mandatory API keys (blocks testing/review), unmocked stubs |
+| **DEC-009** | 2026-10-28 | **Google Gen AI Model: `gemini-2.5-flash` via `@google/genai`** | Official unified Google Gen AI SDK (`@google/genai`); `gemini-2.5-flash` offers high quality, JSON output mode, low latency, and robust free tier limits. | `@google/generative-ai` (legacy), `gemini-1.5-pro` (slower, lower rate limits) |
+| **DEC-010** | 2026-10-28 | **Tavily HTTP API with Direct Fetch** | Lightweight, clean integration via native `fetch` with `search_depth` and domain filtering; no extraneous SDK dependencies. | SerpAPI, Google Custom Search JSON API, Tavily JS wrapper |
+| **DEC-011** | 2026-10-28 | **Tailwind CSS v4 with `@tailwindcss/vite`** | Modern Vite-first integration with CSS variables and automatic content detection. | Tailwind v3 with PostCSS |
+| **DEC-012** | 2026-10-28 | **In-Memory MongoDB for Testing (`mongodb-memory-server`)** | Fast, self-contained test execution with zero external database dependencies or test artifact leakage. | Mocked Mongoose models, shared local MongoDB instance |
