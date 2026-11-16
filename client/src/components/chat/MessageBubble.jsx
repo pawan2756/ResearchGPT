@@ -2,9 +2,10 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Tag } from '../ui/Tag.jsx';
 import { ConfidenceTag } from './ConfidenceTag.jsx';
-import { Sparkles, Clock } from 'lucide-react';
+import { ResearchPrompt } from './ResearchPrompt.jsx';
+import { Sparkles, Clock, AlertTriangle } from 'lucide-react';
 
-export function MessageBubble({ message }) {
+export function MessageBubble({ message, onAcceptResearch, onDeclineResearch }) {
   const isUser = message.role === 'user';
 
   if (isUser) {
@@ -69,12 +70,27 @@ export function MessageBubble({ message }) {
         <ReactMarkdown>{message.content || ''}</ReactMarkdown>
       </div>
 
-      {/* Label for Direct Answer when not verified with sources */}
+      {/* Research Consent Prompt Banner */}
+      {!isResearchMode && message.shouldPrompt && !message.promptDismissed && (
+        <ResearchPrompt
+          score={message.researchScore}
+          signals={message.signals || {}}
+          onAccept={() => onAcceptResearch && onAcceptResearch(message)}
+          onDecline={() => onDeclineResearch && onDeclineResearch(message.id)}
+        />
+      )}
+
+      {/* Label for Direct Answer when user declined or research not run */}
       {message.mode === 'direct' && message.notVerified && (
-        <div className="mt-3 pt-2 text-[12px] border-t border-[var(--border)]" style={{ color: 'var(--text-muted)' }}>
+        <div
+          className="mt-3 pt-2 text-[12px] flex items-center gap-1.5 border-t border-[var(--border)]"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <AlertTriangle className="w-3.5 h-3.5 opacity-75" />
           <em>Not verified with sources</em>
         </div>
       )}
     </div>
   );
 }
+

@@ -4,7 +4,14 @@ import { StatusLine } from './StatusLine.jsx';
 import { Skeleton } from '../ui/Skeleton.jsx';
 import { Sparkles, Compass } from 'lucide-react';
 
-export function MessageList({ messages = [], status = '', loading = false, onExampleClick }) {
+export function MessageList({
+  messages = [],
+  status = '',
+  loading = false,
+  onExampleClick,
+  onAcceptResearch,
+  onDeclineResearch,
+}) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -59,7 +66,12 @@ export function MessageList({ messages = [], status = '', loading = false, onExa
   return (
     <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-4 space-y-4">
       {messages.map((msg, index) => (
-        <MessageBubble key={msg.id || index} message={msg} />
+        <MessageBubble
+          key={msg.id || index}
+          message={msg}
+          onAcceptResearch={onAcceptResearch}
+          onDeclineResearch={onDeclineResearch}
+        />
       ))}
 
       {status && (

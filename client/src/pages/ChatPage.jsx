@@ -102,6 +102,22 @@ export function ChatPage() {
     }
   };
 
+  const handleDeclineResearch = (messageId) => {
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === messageId
+          ? { ...m, promptDismissed: true, notVerified: true }
+          : m
+      )
+    );
+    showToast('Direct answer retained (not verified with sources).', 'info');
+  };
+
+  const handleAcceptResearch = (_message) => {
+    // Handled in M6 Research Pipeline
+    showToast('Starting online research...', 'info');
+  };
+
   return (
     <AppShell>
       <div className="flex-1 flex flex-col h-full max-w-[760px] w-full mx-auto">
@@ -134,6 +150,8 @@ export function ChatPage() {
             status={status}
             loading={loading}
             onExampleClick={handleSend}
+            onAcceptResearch={handleAcceptResearch}
+            onDeclineResearch={handleDeclineResearch}
           />
         </div>
 

@@ -100,3 +100,19 @@ This file tracks every command executed, files modified, and factual test output
    - Implemented `HistoryPage.jsx` with debounced search bar, empty states, pagination controls, and status toasts.
    - Verified client build: `cd client; npm run build` -> Clean.
    - Verified client linting: `cd client; npm run lint` -> 0 errors, 0 warnings.
+
+## [2026-11-17] Milestone M5: Research Score & Consent Interaction
+
+### Tasks Executed
+1. **Consent UI Component**:
+   - Implemented `ResearchPrompt.jsx` using design tokens (`--consent-bg`, `--consent-border`, `--warning-bg`).
+   - Integrated dynamic signal breakdown pills (time-sensitive topic, low model confidence, hedging phrases, volatile role).
+   - Provided distinct "Yes, research online" and "No, keep direct answer" actions.
+2. **Decline Workflow Integration**:
+   - Integrated `ResearchPrompt` inside `MessageBubble.jsx` under direct answers when `message.shouldPrompt` is true.
+   - Wired `handleDeclineResearch` in `ChatPage.jsx`: clicking "No" dismisses prompt, marks message with `notVerified = true`, renders permanent label *"Not verified with sources"*, and prevents any external network request.
+3. **Automated Component Tests**:
+   - Installed `jsdom` and `@testing-library/react` for Vite test runner.
+   - Implemented `client/tests/researchPrompt.test.jsx` verifying prompt rendering, Yes callback execution, and confirming that clicking No does NOT trigger network requests (`global.fetch`).
+   - Command: `cd client; npm test` -> 4 tests passed across 2 suites.
+   - Verified client lint: `npm run lint` -> 0 errors, 0 warnings.
