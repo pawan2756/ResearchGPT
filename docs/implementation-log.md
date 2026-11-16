@@ -80,3 +80,23 @@ This file tracks every command executed, files modified, and factual test output
    - Implemented `MessageList.jsx` with sample suggested questions and scroll-to-bottom behavior.
    - Implemented `ChatPage.jsx` supporting conversation state, follow-ups, and new chat creation.
    - Client linting and build verified clean.
+
+## [2026-11-17] Milestone M4: History & Conversation Management
+
+### Tasks Executed
+1. **History Controllers & Endpoints**:
+   - Implemented `server/src/controllers/chatsController.js` with `listChats`, `getChatById`, `updateChatTitle`, and `deleteChat`.
+   - Wired `server/src/routes/chats.routes.js` with authentication, rate limiting, and Zod query/body validations.
+   - Implemented cascade deletion of all messages when a chat is deleted.
+   - Enforced strict authorization preventing cross-user chat access (403 Forbidden).
+2. **Automated History Tests**:
+   - Implemented `server/tests/chats.test.js` validating pagination (`page`, `limit`), title search regex (`q`), chat message retrieval, renaming, deletion (204 No Content), and cross-user security boundaries.
+   - Command: `cd server; npm test`
+   - Result: 31 tests passed across 5 test suites (health, auth, researchScore, chat, chats).
+3. **Frontend History UI**:
+   - Implemented `useDebounce.js` custom hook for search debounce.
+   - Implemented `format.js` date and timestamp formatters.
+   - Implemented `ChatTable.jsx` with responsive table layout, inline title renaming, delete confirmation state, mode badges, message counters, and navigation links.
+   - Implemented `HistoryPage.jsx` with debounced search bar, empty states, pagination controls, and status toasts.
+   - Verified client build: `cd client; npm run build` -> Clean.
+   - Verified client linting: `cd client; npm run lint` -> 0 errors, 0 warnings.
