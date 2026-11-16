@@ -55,3 +55,28 @@ This file tracks every command executed, files modified, and factual test output
    - Verified client build: `cd client; npm run build` -> Built in 9.17s.
    - Verified client linting: `cd client; npm run lint` -> 0 errors.
    - Verified client test: `cd client; npm test` -> 1 test passed.
+
+## [2026-11-17] Milestone M3: Direct Chat & Research Scoring Engine
+
+### Tasks Executed
+1. **Data Models**:
+   - Implemented `server/src/models/Message.js` containing confidence, needsResearch, researchScore, signals, sources array, excludedCount, verification breakdown, notFound flag, and latencyMs.
+   - Updated `server/src/models/Chat.js` with userId foreign key and timestamps.
+2. **Deterministic Mock Service & Gemini SDK Service**:
+   - Implemented `server/src/services/mock.js` with `mockDirectAnswer`, `mockTavilySearch`, `mockCitedAnswer`, and `mockVerification`.
+   - Implemented `server/src/services/gemini.js` with structured JSON output, `withRetry` exponential backoff, parsing retry fallback, and mock mode support.
+3. **Research Score Rule Engine**:
+   - Implemented `server/src/services/researchScore.js` evaluating low confidence (+2), needsResearch flag (+1), time-sensitive patterns/years (+2), and answer hedging (+2).
+   - Tested 12 distinct unit test cases including threshold boundary in `server/tests/researchScore.test.js`.
+4. **Direct Chat API & Validation**:
+   - Implemented `askQuestion` controller in `server/src/controllers/chatController.js` and wired `/api/chat/ask`.
+   - Applied `chatRateLimiter` (30/min per user) and Zod validation (1-1000 chars).
+   - Validated automated tests in `server/tests/chat.test.js` (valid ask, chat auto-creation, message persistence, empty question 400, question > 1000 chars 400, cross-user isolation 403, unauthenticated 401).
+   - Full server test run: 26 passed across 4 test suites.
+5. **Frontend Chat UI**:
+   - Implemented `ChatInput.jsx` with auto-growing textarea, char counter (max 1000), Enter-to-send keyboard shortcut.
+   - Implemented `ConfidenceTag.jsx` with color-coded confidence levels.
+   - Implemented `MessageBubble.jsx` with clean user bubble and assistant card view with Markdown rendering.
+   - Implemented `MessageList.jsx` with sample suggested questions and scroll-to-bottom behavior.
+   - Implemented `ChatPage.jsx` supporting conversation state, follow-ups, and new chat creation.
+   - Client linting and build verified clean.

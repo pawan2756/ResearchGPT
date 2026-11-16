@@ -6,8 +6,8 @@
 | :--- | :--- | :--- | :--- |
 | **M1: Scaffold** | Repo setup, `.gitignore`, `AGENTS.md`, `docs/`, `server/`, `client/`, lint/format, config, health check, logger, error handling | Completed | Missing env keys handled gracefully by fallback config; port conflicts avoided via sensible defaults. |
 | **M2: Auth & Foundations** | User model, JWT auth, rate limits, tests, UI design tokens, primitives, responsive layout (AppShell, Sidebar) | Completed | Secure password hashing with bcrypt, strict Zod schema validation, accessible token-based theme switching. |
-| **M3: Direct Chat** | Gemini integration + Mock mode, Chat/Message models, `/api/chat/ask`, ChatPage, confidence indicator | In Progress | Rate limit / 429 on free tier handled with exponential backoff; JSON parsing errors fall back gracefully. |
-| **M4: History** | Chat management endpoints, HistoryPage, debounced search, rename/delete modals, pagination | Pending | Data scoping per authenticated user strictly enforced. |
+| **M3: Direct Chat** | Gemini integration + Mock mode, Chat/Message models, `/api/chat/ask`, ChatPage, confidence indicator | Completed | Rate limit / 429 on free tier handled with exponential backoff; JSON parsing errors fall back gracefully. |
+| **M4: History** | Chat management endpoints, HistoryPage, debounced search, rename/delete modals, pagination | In Progress | Data scoping per authenticated user strictly enforced. |
 | **M5: Research Score & Consent** | `computeResearchScore` rule engine, unit tests, `ResearchPrompt` UI component, consent decline path | Pending | Boundary tests around threshold (3) to prevent false positives/negatives. |
 | **M6: Research Pipeline** | Tavily search + mock, sourcePrep (chunking & scoring), query cache, SSE streaming, SourcesPanel, StatusLine | Pending | SSE connection drops handled via client-side abort controllers and server-side request closing. |
 | **M7: Trust & Verification** | Credibility scoring (.gov/.edu/etc.), domain allow/blocklist, CitationDrawer, claim verification service, ClaimTag | Pending | Prompt-injection inside scraped page text neutralized via prompt sandboxing & untrusted text guidelines. |
