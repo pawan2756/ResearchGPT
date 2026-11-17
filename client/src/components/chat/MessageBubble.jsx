@@ -1,11 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Tag } from '../ui/Tag.jsx';
 import { ConfidenceTag } from './ConfidenceTag.jsx';
 import { ResearchPrompt } from './ResearchPrompt.jsx';
+import { SourcesPanel } from './SourcesPanel.jsx';
+import { ClaimVerification } from './ClaimVerification.jsx';
 import { Sparkles, Clock, AlertTriangle } from 'lucide-react';
+import { CITATION_REGEX } from '../../utils/parseCitations.js';
+
+/**
+ * Transforms citations like [1] or [1, 2] into markdown links: [cite:1](#cite-1)
+ */
+function linkifyCitations(text = '') {
+  if (!text) return '';
+  return text.replace(CITATION_REGEX, (_match, group) => {
+    const cleanGroup = group.replace(/\s+/g, '');
+    return `[cite:${cleanGroup}](#cite-${cleanGroup})`;
+  });
+}
 
 export function MessageBubble({ message, onAcceptResearch, onDeclineResearch }) {
+  const [activeSourceId, setActiveSourceId] = useState(null);
   const isUser = message.role === 'user';
 
   if (isUser) {
@@ -26,6 +41,19 @@ export function MessageBubble({ message, onAcceptResearch, onDeclineResearch }) 
 
   // Assistant Message Card
   const isResearchMode = message.mode === 'research';
+  const hasSources = isResearchMode && message.sources && message.sources.length > 0;
+
+  const handleSelectSource = (sourceId) => {
+    setActiveSourceId(sourceId);
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById(`source-card-${sourceId}`);
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  };
+
+  const processedContent = isResearchMode ? linkifyCitations(message.content) : message.content;
 
   return (
     <div
@@ -62,13 +90,94 @@ export function MessageBubble({ message, onAcceptResearch, onDeclineResearch }) 
         )}
       </div>
 
+      {/* Sources Displayed BEFORE Text Tokens in Research Mode */}
+      {hasSources && (
+        <SourcesPanel
+          sources={message.sources}
+          excludedCount={message.excludedCount || 0}
+          activeSourceId={activeSourceId}
+          onSelectSource={handleSelectSource}
+        />
+      )}
+
       {/* Answer Content */}
       <div
         className="prose prose-sm max-w-none text-[15px] leading-[1.7] break-words"
         style={{ color: 'var(--text)' }}
       >
-        <ReactMarkdown>{message.content || ''}</ReactMarkdown>
+        <ReactMarkdown
+          components={{
+            a: ({ href, children, ...props }) => {
+              if (href && href.startsWith('#cite-')) {
+                const rawIds = href.replace('#cite-', '');
+                const ids = rawIds
+                  .split(',')
+                  .map((s) => parseInt(s.trim(), 10))
+                  .filter((n) => !isNaN(n));
+
+                return (
+                  <span className="inline-flex items-center gap-1 mx-1 align-baseline select-none">
+                    {ids.map((id) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleSelectSource(id);
+                        }}
+                        className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[11px] font-bold cursor-pointer transition-all hover:scale-105 active:scale-95"
+                        style={{
+                          backgroundColor:
+                            activeSourceId === id ? 'var(--primary)' : 'var(--primary-soft)',
+                          color:
+                            activeSourceId === id
+                              ? 'var(--text-on-primary)'
+                              : 'var(--primary)',
+                          border: '1px solid var(--border)',
+                        }}
+                        title={`View Source [${id}]`}
+                      >
+                        [{id}]
+                      </button>
+                    ))}
+                  </span>
+                );
+              }
+              return (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:opacity-80"
+                  style={{ color: 'var(--primary)' }}
+                  {...props}
+                >
+                  {children}
+                </a>
+              );
+            },
+          }}
+        >
+          {processedContent || ''}
+        </ReactMarkdown>
+
+        {/* Real-time typing cursor during live stream */}
+        {message.isStreaming && (
+          <span
+            className="inline-block w-1.5 h-4 ml-1 align-middle animate-pulse"
+            style={{ backgroundColor: 'var(--primary)' }}
+          />
+        )}
       </div>
+
+      {/* Claim Verification Pass */}
+      {isResearchMode && message.verification && (
+        <ClaimVerification
+          verification={message.verification}
+          onSourceClick={handleSelectSource}
+        />
+      )}
 
       {/* Research Consent Prompt Banner */}
       {!isResearchMode && message.shouldPrompt && !message.promptDismissed && (
@@ -93,4 +202,3 @@ export function MessageBubble({ message, onAcceptResearch, onDeclineResearch }) 
     </div>
   );
 }
-

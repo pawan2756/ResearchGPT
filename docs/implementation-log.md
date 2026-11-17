@@ -116,3 +116,50 @@ This file tracks every command executed, files modified, and factual test output
    - Implemented `client/tests/researchPrompt.test.jsx` verifying prompt rendering, Yes callback execution, and confirming that clicking No does NOT trigger network requests (`global.fetch`).
    - Command: `cd client; npm test` -> 4 tests passed across 2 suites.
    - Verified client lint: `npm run lint` -> 0 errors, 0 warnings.
+
+## [2026-11-18] Milestones M6 & M7: Research Pipeline, Trust & Verification
+
+### Tasks Executed
+1. **Query Caching & Deterministic Fallbacks**:
+   - Implemented `server/src/models/QueryCache.js` with 6-hour TTL index.
+   - Implemented `server/src/services/cache.js` with SHA-256 normalized query hashing.
+   - Implemented `server/src/services/tavily.js` calling Tavily Search API with deterministic mock fallback when `TAVILY_API_KEY` is not present.
+2. **Source Preparation & Credibility Engine**:
+   - Implemented `server/src/services/sourcePrep.js` with regex-based passage chunking and query-relevance token scoring.
+   - Implemented `server/src/services/credibility.js` with domain-level scoring (+30 .gov/.edu, +25 authoritative journals/press, -30 user-generated sites), allowlist/blocklist filters, and band assignment (`high` >= 70, `medium` 40-69, `low` < 40).
+3. **SSE Research Pipeline & Anti-Injection System**:
+   - Implemented `server/src/services/researchPipeline.js` orchestrating:
+     1. Status: `Searching the web...`
+     2. Query cache check and Tavily search (mock/live)
+     3. Status: `Checking sources...`
+     4. Source prep & credibility filtering
+     5. Crucial Protocol Invariant: `sources` event emitted **BEFORE** any answer token
+     6. Status: `Writing answer from sources...`
+     7. Live Gemini streaming synthesis or chunked mock stream with strict system prompt sandboxing treating retrieved web data as raw untrusted text
+     8. Status: `Verifying claims...`
+     9. Atomic claim verification pass returning supported flags and evidence quotes
+     10. MongoDB message persistence (`mode: 'research'`)
+     11. `done` event with message ID and not-found indicator
+   - Implemented `server/src/controllers/researchController.js` handling `/api/chat/research`.
+   - Wired endpoint in `server/src/routes/chat.routes.js`.
+4. **Automated Server Tests**:
+   - Implemented `server/tests/sourcePrep.test.js` (4 tests).
+   - Implemented `server/tests/credibility.test.js` (8 tests).
+   - Implemented `server/tests/research.test.js` (4 tests) verifying exact SSE event sequence (`status` -> `sources` -> `token` -> `verification` -> `done`), not-found path, cache hit bypass, and prompt-injection resistance.
+   - Test run: `cd server; npm test` -> All 8 test suites passed (47/47 tests).
+5. **Frontend Research Stream UI & Citations**:
+   - Implemented `client/src/api/sse.js` with chunk boundary resilient SSE parser over HTTP POST with JWT headers.
+   - Implemented `client/src/utils/parseCitations.js` for citation extraction, count, and segmentation.
+   - Implemented `client/src/components/chat/SourcesPanel.jsx` with credibility badges (`High`, `Medium`, `Low`), external links, snippet quotes, and card highlighting.
+   - Implemented `client/src/components/chat/ClaimVerification.jsx` with verification summary badge, atomic claims list, and evidence quotes.
+   - Updated `client/src/components/chat/MessageBubble.jsx` to render sources before text in research mode, convert `[1]` to clickable citation buttons, and render claim verification breakdown.
+   - Updated `client/src/components/chat/StatusLine.jsx` with Stop/Cancel research button.
+   - Updated `client/src/pages/ChatPage.jsx` with full SSE stream lifecycle, abort controller, and live typing indicator.
+6. **Automated Client Tests**:
+   - Implemented `client/tests/parseCitations.test.js` (4 tests).
+   - Implemented `client/tests/sourcesPanel.test.jsx` (4 tests).
+   - Implemented `client/tests/claimVerification.test.jsx` (3 tests).
+   - Implemented `client/tests/messageBubble.test.jsx` (4 tests).
+   - Full test run: `cd client; npm test` -> All 6 test suites passed (19/19 tests).
+   - Client lint: `cd client; npm run lint` -> 0 errors, 0 warnings.
+   - Client build: `cd client; npm run build` -> Production build completed successfully in 6.06s.

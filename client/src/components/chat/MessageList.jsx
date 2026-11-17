@@ -11,6 +11,7 @@ export function MessageList({
   onExampleClick,
   onAcceptResearch,
   onDeclineResearch,
+  onCancel,
 }) {
   const bottomRef = useRef(null);
 
@@ -76,7 +77,7 @@ export function MessageList({
 
       {status && (
         <div className="py-2">
-          <StatusLine status={status} />
+          <StatusLine status={status} onCancel={onCancel} />
         </div>
       )}
 
