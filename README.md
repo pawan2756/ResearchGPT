@@ -49,7 +49,7 @@ Create `server/.env` based on `server/.env.example`:
 | `GEMINI_API_KEY` | Google Gemini API Key (optional for mock mode) | `""` |
 | `GEMINI_MODEL` | Gemini model name | `gemini-2.5-flash` |
 | `TAVILY_API_KEY` | Tavily Search API Key (optional for mock mode) | `""` |
-| `CLIENT_ORIGIN` | Allowed CORS frontend origin | `http://localhost:5173` |
+| `CLIENT_ORIGIN` | Allowed CORS frontend origin | `http://localhost:5174` |
 | `RESEARCH_THRESHOLD` | Threshold score to prompt research consent | `3` |
 | `MOCK_MODE` | Force mock mode (`true` / `false` / unset for auto) | Auto-detected |
 
@@ -87,7 +87,12 @@ cd client
 npm run dev
 ```
 
-Visit `http://localhost:5173` in your browser.
+```bash
+# Terminal 1: for both frontend and backend using one terminal
+npm run dev
+```
+
+Visit `http://localhost:5174` in your browser.
 
 ### 3. Run Automated Tests
 
