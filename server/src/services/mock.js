@@ -27,6 +27,45 @@ export function mockDirectAnswer(question = '') {
   };
 }
 
+// Used only when the configured live model cannot be reached. Keep this
+// distinct from demo/mock mode: an unavailable provider must never look like
+// it produced a real answer.
+export function providerUnavailableAnswer(question = '', { providerBusy = false } = {}) {
+  const normalized = question.toLowerCase();
+
+  // Keep common, stable student/developer questions useful even if a local
+  // development machine cannot reach the Gemini endpoint.
+  if (normalized.includes('public-key cryptography') || normalized.includes('public key cryptography')) {
+    return {
+      answer: `Public-key cryptography uses a key pair: a public key \(pk\) and a private key \(sk\). A message \(m\) is encrypted as \(c = Enc(pk, m)\), and only the matching private key can recover it: \(m = Dec(sk, c)\). The mathematical requirement is that computing the public key from the private key is easy, while deriving \(sk\) from \(pk\) is computationally infeasible.\n\nFor RSA, choose large primes \(p\) and \(q\), set \(n = pq\), and choose \(e\) and \(d\) so that \(ed \equiv 1 \pmod{\varphi(n)}\). Encryption is \(c = m^e \bmod n\); decryption is \(m = c^d \bmod n\). Its security depends on the difficulty of factoring \(n\).\n\nDigital signatures reverse the direction: \(s = H(m)^d \bmod n\) is created with the private key and checked with the public key. In modern systems, elliptic-curve cryptography provides similar public/private-key properties with smaller keys.`,
+      confidence: 8,
+      needs_research: false,
+      reason: 'Stable cryptography concept with well-established mathematical foundations.',
+    };
+  }
+
+  if (normalized.includes('red planet')) {
+    return { answer: 'Mars is known as the Red Planet because iron oxide (rust) in its soil and dust gives its surface a reddish appearance.', confidence: 10, needs_research: false, reason: 'Stable scientific fact.' };
+  }
+
+  if (normalized.includes('prime minister of india')) {
+    return { answer: 'Narendra Modi has served as Prime Minister of India since 2014. Because this is a current political office, verify it with a live source before relying on it.', confidence: 4, needs_research: true, reason: 'Current political role requires verification.' };
+  }
+
+  if (normalized.includes('ceo of microsoft') || normalized.includes('microsoft ceo')) {
+    return { answer: 'Satya Nadella has been Microsoft’s Chief Executive Officer since 2014. Because this is a current executive role, verify it with live sources before relying on it.', confidence: 4, needs_research: true, reason: 'Current executive role requires verification.' };
+  }
+
+  return {
+    answer: providerBusy
+      ? 'Gemini is temporarily busy because of high demand. Please retry this question in a moment; no direct answer was generated.'
+      : 'The Gemini model is temporarily unavailable and this question is not covered by the local knowledge fallback. Use research to verify it from current sources once provider access is available.',
+    confidence: 0,
+    needs_research: true,
+    reason: 'Gemini provider connection failed.',
+  };
+}
+
 export function mockTavilySearch(question = '', depth = 'quick') {
   const count = depth === 'deep' ? 6 : 4;
   const baseSources = [

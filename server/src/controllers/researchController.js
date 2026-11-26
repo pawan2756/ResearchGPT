@@ -3,26 +3,17 @@ import { User } from '../models/User.js';
 import { openSse } from '../utils/sse.js';
 import { NotFoundError, ForbiddenError } from '../utils/errors.js';
 import { runResearch } from '../services/researchPipeline.js';
+import { getChat, getSettings } from '../services/localStore.js';
 
 export async function handleResearchStream(req, res, next) {
-  const userId = req.user.id;
-  const { chatId, question } = req.body;
+  const { chatId, question, messageId } = req.body;
 
   try {
-    const chat = await Chat.findById(chatId);
+    const chat = getChat(chatId);
     if (!chat) {
       throw new NotFoundError('Chat not found');
     }
-    if (chat.userId.toString() !== userId) {
-      throw new ForbiddenError('You do not have access to this chat');
-    }
-
-    const user = await User.findById(userId).lean();
-    const userSettings = user?.settings || {
-      depth: 'quick',
-      allowlist: [],
-      blocklist: [],
-    };
+    const userSettings = getSettings();
 
     // Open Server-Sent Events stream
     openSse(res);
@@ -31,9 +22,10 @@ export async function handleResearchStream(req, res, next) {
     await runResearch({
       req,
       res,
-      chatId: chat._id,
+      chatId: chat.id,
       question: question.trim(),
       userSettings,
+      targetMessageId: messageId,
     });
   } catch (err) {
     if (!res.headersSent) {

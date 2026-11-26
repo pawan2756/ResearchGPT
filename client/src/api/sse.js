@@ -79,7 +79,10 @@ export async function streamResearch(body, handlers = {}, signal) {
         }
 
         if (trimmed.startsWith('data:')) {
-          const rawData = line.slice(line.indexOf(':') + 1).trim();
+          // Remove only the optional separator space after `data:`. A full
+          // trim also strips intentional leading spaces from streamed tokens,
+          // causing every word in the rendered answer to run together.
+          const rawData = line.slice(line.indexOf(':') + 1).replace(/^ /, '');
 
           let parsedData = rawData;
           try {

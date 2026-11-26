@@ -1,136 +1,43 @@
-import { Chat } from '../models/Chat.js';
-import { Message } from '../models/Message.js';
-import { NotFoundError, ForbiddenError } from '../utils/errors.js';
+import { NotFoundError } from '../utils/errors.js';
+import { getChat, getMessages, listChats as getStoredChats, renameChat, removeChat } from '../services/localStore.js';
 
 export async function listChats(req, res, next) {
   try {
-    const userId = req.user.id;
-    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
-    const q = (req.query.q || '').trim();
-
-    const filter = { userId };
-    if (q) {
-      filter.title = { $regex: q, $options: 'i' };
-    }
-
-    const total = await Chat.countDocuments(filter);
-    const chats = await Chat.find(filter)
-      .sort({ updatedAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
-
-    // Enrich chats with last message preview and message count
-    const enriched = await Promise.all(
-      chats.map(async (chat) => {
-        const messageCount = await Message.countDocuments({ chatId: chat._id });
-        const lastMessage = await Message.findOne({ chatId: chat._id })
-          .sort({ createdAt: -1 })
-          .select('mode content createdAt')
-          .lean();
-
-        return {
-          id: chat._id.toString(),
-          title: chat.title,
-          createdAt: chat.createdAt,
-          updatedAt: chat.updatedAt,
-          messageCount,
-          lastMode: lastMessage?.mode || 'direct',
-          lastPreview: lastMessage?.content ? lastMessage.content.slice(0, 100) : '',
-        };
-      })
-    );
-
-    res.status(200).json({
-      chats: enriched,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit) || 1,
-      },
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 50);
+    const query = String(req.query.q || '').trim().toLowerCase();
+    const all = getStoredChats().filter((chat) => !query || chat.title.toLowerCase().includes(query));
+    const chats = all.slice((page - 1) * limit, page * limit).map((chat) => {
+      const chatMessages = getMessages(chat.id);
+      const last = chatMessages.at(-1);
+      return { ...chat, messageCount: chatMessages.length, lastMode: last?.mode || 'direct', lastPreview: last?.content?.slice(0, 100) || '' };
     });
-  } catch (err) {
-    next(err);
-  }
+    res.json({ chats, pagination: { total: all.length, page, limit, pages: Math.max(1, Math.ceil(all.length / limit)) } });
+  } catch (error) { next(error); }
 }
 
 export async function getChatById(req, res, next) {
   try {
-    const { id } = req.params;
-    const userId = req.user.id;
-
-    const chat = await Chat.findById(id);
-    if (!chat) {
-      throw new NotFoundError('Chat not found');
-    }
-    if (chat.userId.toString() !== userId) {
-      throw new ForbiddenError('You do not have permission to view this chat');
-    }
-
-    const messages = await Message.find({ chatId: chat._id })
-      .sort({ createdAt: 1 })
-      .lean();
-
-    const transformedMessages = messages.map((m) => ({
-      ...m,
-      id: m._id.toString(),
-      _id: undefined,
-      __v: undefined,
+    const chat = getChat(req.params.id);
+    if (!chat) throw new NotFoundError('Chat not found');
+    const messages = getMessages(chat.id).map((message) => ({
+      ...message,
+      shouldPrompt: message.role === 'assistant' && message.mode === 'direct' && !message.promptDismissed && (message.shouldPrompt || message.researchScore >= 3),
     }));
-
-    res.status(200).json({
-      chat: chat.toJSON(),
-      messages: transformedMessages,
-    });
-  } catch (err) {
-    next(err);
-  }
+    res.json({ chat, messages });
+  } catch (error) { next(error); }
 }
 
 export async function updateChatTitle(req, res, next) {
   try {
-    const { id } = req.params;
-    const userId = req.user.id;
-    const { title } = req.body;
-
-    const chat = await Chat.findById(id);
-    if (!chat) {
-      throw new NotFoundError('Chat not found');
-    }
-    if (chat.userId.toString() !== userId) {
-      throw new ForbiddenError('You do not have permission to modify this chat');
-    }
-
-    chat.title = title.trim();
-    await chat.save();
-
-    res.status(200).json({ chat: chat.toJSON() });
-  } catch (err) {
-    next(err);
-  }
+    const chat = renameChat(req.params.id, req.body.title.trim());
+    if (!chat) throw new NotFoundError('Chat not found');
+    res.json({ chat });
+  } catch (error) { next(error); }
 }
-
 export async function deleteChat(req, res, next) {
   try {
-    const { id } = req.params;
-    const userId = req.user.id;
-
-    const chat = await Chat.findById(id);
-    if (!chat) {
-      throw new NotFoundError('Chat not found');
-    }
-    if (chat.userId.toString() !== userId) {
-      throw new ForbiddenError('You do not have permission to delete this chat');
-    }
-
-    // Cascade delete associated messages
-    await Message.deleteMany({ chatId: chat._id });
-    await Chat.deleteOne({ _id: chat._id });
-
+    if (!removeChat(req.params.id)) throw new NotFoundError('Chat not found');
     res.status(204).end();
-  } catch (err) {
-    next(err);
-  }
+  } catch (error) { next(error); }
 }

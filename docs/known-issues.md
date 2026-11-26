@@ -10,3 +10,5 @@
    - Google Gemini free tier and Tavily free tier are subject to requests-per-minute (RPM) and monthly query limits. The app includes automatic backoff and Mock Mode fallback to mitigate this.
 5. **Evaluation Sample Size**:
    - The built-in 40-question evaluation benchmark is tailored for qualitative academic viva demonstration rather than exhaustive industrial LLM alignment.
+6. **Blocked Provider Egress**:
+   - On the current Windows environment, DNS resolution for Gemini succeeds but outbound HTTPS from Node.js is denied with `EACCES`. Tavily requests fail before the provider responds as well. This prevents real direct answers and source retrieval regardless of API-key configuration. Allow `node.exe` outbound HTTPS to `generativelanguage.googleapis.com` and `api.tavily.com` to enable live mode.

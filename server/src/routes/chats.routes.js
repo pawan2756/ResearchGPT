@@ -6,7 +6,7 @@ import {
   updateChatTitle,
   deleteChat,
 } from '../controllers/chatsController.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { workspaceMiddleware } from '../middleware/workspace.js';
 import { chatRateLimiter } from '../middleware/rateLimit.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
 
@@ -26,7 +26,7 @@ const updateTitleSchema = z.object({
     .max(120, 'Title cannot exceed 120 characters'),
 });
 
-router.use(authMiddleware);
+router.use(workspaceMiddleware);
 router.use(chatRateLimiter);
 
 router.get('/', validateQuery(listQuerySchema), listChats);

@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, ExternalLink, ShieldCheck, ShieldAlert, Shield } from 'lucide-react';
 
-export function SourcesPanel({ sources = [], excludedCount = 0, activeSourceId = null, onSelectSource }) {
-  const [isOpen, setIsOpen] = useState(true);
+export function SourcesPanel({ sources = [], excludedCount = 0, activeSourceId = null, onSelectSource, isStreaming = false }) {
+  const [isOpen, setIsOpen] = useState(Boolean(isStreaming));
+
+  // Sources appear first while research runs. Once the answer is ready, fold
+  // the long source list so the cited answer and verification are visible.
+  useEffect(() => {
+    if (!isStreaming) setIsOpen(false);
+  }, [isStreaming]);
 
   if (!sources || sources.length === 0) {
     return null;

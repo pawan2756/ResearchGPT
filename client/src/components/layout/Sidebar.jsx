@@ -6,7 +6,6 @@ import {
   CheckSquare,
   BarChart2,
   Settings,
-  LogOut,
   Sun,
   Moon,
   Laptop,
@@ -14,13 +13,11 @@ import {
   X,
   Sparkles,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext.jsx';
 import { useTheme } from '../../context/ThemeContext.jsx';
 import { Tag } from '../ui/Tag.jsx';
 import { apiGetHealth } from '../../api/auth.js';
 
 export function Sidebar() {
-  const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -47,11 +44,6 @@ export function Sidebar() {
     { to: '/analytics', label: 'Analytics', icon: BarChart2 },
     { to: '/settings', label: 'Settings', icon: Settings },
   ];
-
-  const handleLogout = () => {
-    logout();
-    navigate('/auth');
-  };
 
   const cycleTheme = () => {
     if (theme === 'system') setTheme('light');
@@ -157,18 +149,7 @@ export function Sidebar() {
 
         {/* User Profile & Theme Controls */}
         <div className="p-3 border-t border-[var(--nav-hover)] space-y-2">
-          {user && (
-            <div className="px-2 py-1">
-              <p className="text-[11px] uppercase tracking-wider text-[var(--nav-text)] opacity-70">
-                Signed in as
-              </p>
-              <p className="text-[13px] font-medium text-white truncate" title={user.email}>
-                {user.email}
-              </p>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center pt-1">
             <button
               onClick={cycleTheme}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[6px] text-[12px] hover:bg-[var(--nav-hover)] text-[var(--nav-text)] hover:text-white transition-colors"
@@ -176,15 +157,6 @@ export function Sidebar() {
             >
               {themeIcon}
               <span className="capitalize">{theme}</span>
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[6px] text-[12px] hover:bg-[var(--nav-hover)] text-[var(--danger-text)] hover:opacity-90 transition-colors"
-              title="Sign out"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Logout</span>
             </button>
           </div>
         </div>

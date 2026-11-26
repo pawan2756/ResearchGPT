@@ -5,8 +5,9 @@ import { ConfidenceTag } from './ConfidenceTag.jsx';
 import { ResearchPrompt } from './ResearchPrompt.jsx';
 import { SourcesPanel } from './SourcesPanel.jsx';
 import { ClaimVerification } from './ClaimVerification.jsx';
-import { Sparkles, Clock, AlertTriangle } from 'lucide-react';
+import { Sparkles, Clock, AlertTriangle, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { CITATION_REGEX } from '../../utils/parseCitations.js';
+import { apiSubmitFeedback } from '../../api/feedback.js';
 
 /**
  * Transforms citations like [1] or [1, 2] into markdown links: [cite:1](#cite-1)
@@ -21,7 +22,19 @@ function linkifyCitations(text = '') {
 
 export function MessageBubble({ message, onAcceptResearch, onDeclineResearch }) {
   const [activeSourceId, setActiveSourceId] = useState(null);
+  const [feedbackRating, setFeedbackRating] = useState(null);
   const isUser = message.role === 'user';
+
+  const handleFeedback = async (rating) => {
+    if (!message.id || message.isStreaming) return;
+    setFeedbackRating(rating);
+    try {
+      await apiSubmitFeedback({ messageId: message.id, rating });
+    } catch {
+      // Revert if API fails
+      setFeedbackRating(null);
+    }
+  };
 
   if (isUser) {
     return (
@@ -97,6 +110,7 @@ export function MessageBubble({ message, onAcceptResearch, onDeclineResearch }) 
           excludedCount={message.excludedCount || 0}
           activeSourceId={activeSourceId}
           onSelectSource={handleSelectSource}
+          isStreaming={message.isStreaming}
         />
       )}
 
@@ -197,6 +211,48 @@ export function MessageBubble({ message, onAcceptResearch, onDeclineResearch }) 
         >
           <AlertTriangle className="w-3.5 h-3.5 opacity-75" />
           <em>Not verified with sources</em>
+        </div>
+      )}
+
+      {/* Assistant Message Actions & Feedback */}
+      {!message.isStreaming && message.id && (
+        <div className="mt-3 pt-2.5 flex items-center justify-between border-t border-[var(--border)] text-[12px]">
+          <span style={{ color: 'var(--text-muted)' }} className="text-[11px]">
+            Was this response helpful?
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => handleFeedback('positive')}
+              className={`p-1.5 rounded-md hover:bg-[var(--surface-2)] transition-colors flex items-center gap-1 text-[11px] ${
+                feedbackRating === 'positive'
+                  ? 'text-[var(--success-text)] font-semibold'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text)]'
+              }`}
+              title="Helpful response"
+            >
+              <ThumbsUp
+                className={`w-3.5 h-3.5 ${feedbackRating === 'positive' ? 'fill-current' : ''}`}
+              />
+              <span>Helpful</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleFeedback('negative')}
+              className={`p-1.5 rounded-md hover:bg-[var(--surface-2)] transition-colors flex items-center gap-1 text-[11px] ${
+                feedbackRating === 'negative'
+                  ? 'text-[var(--danger-text)] font-semibold'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text)]'
+              }`}
+              title="Inaccurate or unhelpful"
+            >
+              <ThumbsDown
+                className={`w-3.5 h-3.5 ${feedbackRating === 'negative' ? 'fill-current' : ''}`}
+              />
+              <span>Inaccurate</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

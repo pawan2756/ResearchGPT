@@ -69,6 +69,18 @@ const messageSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    shouldPrompt: {
+      type: Boolean,
+      default: false,
+    },
+    promptDismissed: {
+      type: Boolean,
+      default: false,
+    },
+    notVerified: {
+      type: Boolean,
+      default: false,
+    },
     signals: {
       type: mongoose.Schema.Types.Mixed,
       default: {},

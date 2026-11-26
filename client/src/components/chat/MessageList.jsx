@@ -24,6 +24,12 @@ export function MessageList({
     'What is the latest release date and price of NVIDIA RTX 5090?',
     'Who is the current CEO of Microsoft in 2026?',
     'How does public-key cryptography work mathematically?',
+    'What is the current price of Bitcoin in USD?',
+    'Who won the most recent ICC Men’s T20 World Cup?',
+    'What is the latest stable version of Node.js?',
+    'What is the current RBI repo rate in India?',
+    'Who is the current Prime Minister of the United Kingdom?',
+    'What is the latest price of Apple MacBook Air?',
   ];
 
   if (messages.length === 0 && !loading) {

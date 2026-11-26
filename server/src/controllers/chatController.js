@@ -4,36 +4,30 @@ import { generateDirectAnswer } from '../services/gemini.js';
 import { computeResearchScore } from '../services/researchScore.js';
 import { logStep } from '../utils/logger.js';
 import { NotFoundError, ForbiddenError } from '../utils/errors.js';
+import { createChat, getChat, saveMessage } from '../services/localStore.js';
 
 export async function askQuestion(req, res, next) {
   const startTime = Date.now();
   const reqId = req.id;
-  const userId = req.user.id;
   const { chatId, question } = req.body;
 
   try {
     let activeChat;
 
     if (chatId) {
-      activeChat = await Chat.findById(chatId);
+      activeChat = getChat(chatId);
       if (!activeChat) {
         throw new NotFoundError('Chat not found');
-      }
-      if (activeChat.userId.toString() !== userId) {
-        throw new ForbiddenError('You do not have access to this chat');
       }
     } else {
       // Create new chat with clean title from first 40 chars of question
       const cleanTitle = question.trim().slice(0, 40) + (question.trim().length > 40 ? '...' : '');
-      activeChat = await Chat.create({
-        userId,
-        title: cleanTitle || 'New Research Chat',
-      });
+      activeChat = createChat(cleanTitle || 'New Research Chat');
     }
 
     // Save user message
-    await Message.create({
-      chatId: activeChat._id,
+    saveMessage({
+      chatId: activeChat.id,
       role: 'user',
       content: question.trim(),
       mode: 'direct',
@@ -67,21 +61,22 @@ export async function askQuestion(req, res, next) {
     const totalLatency = Date.now() - startTime;
 
     // Save assistant message
-    const assistantMessage = await Message.create({
-      chatId: activeChat._id,
+    const assistantMessage = saveMessage({
+      chatId: activeChat.id,
       role: 'assistant',
       content: directResult.answer,
       mode: 'direct',
       confidence: directResult.confidence,
       needsResearch: directResult.needs_research,
       researchScore: score,
+      shouldPrompt,
       signals,
       latencyMs: totalLatency,
     });
 
     res.status(200).json({
       chatId: activeChat.id,
-      message: assistantMessage.toJSON(),
+      message: assistantMessage,
       researchScore: score,
       signals,
       shouldPrompt,

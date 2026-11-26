@@ -2,6 +2,20 @@
 
 This file tracks every command executed, files modified, and factual test output obtained throughout development.
 
+## [2026-11-22] Runtime Audit and Reliability Fixes
+
+### Verified findings
+1. Inventory review covered the client API/UI, server configuration, routes, middleware, services, tests, and documentation.
+2. Direct provider diagnostic: DNS for `generativelanguage.googleapis.com` resolved, but an HTTPS request from Node.js failed with `EACCES` before an HTTP response. Tavily requests failed at the same network boundary.
+3. The runtime uses an in-memory workspace when MongoDB is unavailable; chat, evaluation, analytics, and settings data reset on server restart.
+4. Existing server tests still target the previous JWT/MongoDB implementation and therefore are not representative of the current no-auth/local-workspace runtime.
+
+### Changes applied
+1. Preserved spaces in streamed SSE text tokens so responses no longer render as one joined word sequence.
+2. Replaced a direct-answer card with its accepted research result, including persisted history filtering, so one question has one assistant card.
+3. Removed unsupported Gemini candidate names and changed failed research synthesis from placeholder cited prose to an explicit unavailable-service response.
+4. Added local environment override loading through `server/.env.local`, which is ignored by Git.
+
 ## [2026-10-28] Milestone M1: Initial Scaffolding
 
 ### Tasks Executed

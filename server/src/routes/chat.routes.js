@@ -2,14 +2,14 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { askQuestion } from '../controllers/chatController.js';
 import { handleResearchStream } from '../controllers/researchController.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { workspaceMiddleware } from '../middleware/workspace.js';
 import { chatRateLimiter, researchRateLimiter } from '../middleware/rateLimit.js';
 import { validateBody } from '../middleware/validate.js';
 
 const router = Router();
 
 const askSchema = z.object({
-  chatId: z.string().optional(),
+  chatId: z.string().nullable().optional(),
   question: z
     .string({ required_error: 'Question is required' })
     .trim()
@@ -27,7 +27,7 @@ const researchSchema = z.object({
   messageId: z.string().optional(),
 });
 
-router.post('/ask', authMiddleware, chatRateLimiter, validateBody(askSchema), askQuestion);
-router.post('/research', authMiddleware, researchRateLimiter, validateBody(researchSchema), handleResearchStream);
+router.post('/ask', workspaceMiddleware, chatRateLimiter, validateBody(askSchema), askQuestion);
+router.post('/research', workspaceMiddleware, researchRateLimiter, validateBody(researchSchema), handleResearchStream);
 
 export default router;

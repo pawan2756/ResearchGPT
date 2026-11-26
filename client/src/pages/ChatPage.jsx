@@ -91,7 +91,7 @@ export function ChatPage() {
 
     try {
       const res = await apiAskQuestion({
-        chatId: activeChatId,
+        chatId: activeChatId || undefined,
         question,
       });
 
@@ -157,16 +157,7 @@ export function ChatPage() {
   const handleAcceptResearch = async (targetMessage) => {
     if (isStreaming || loading) return;
 
-    // 1. Dismiss the research prompt on the direct-answer message
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === targetMessage.id
-          ? { ...m, promptDismissed: true }
-          : m
-      )
-    );
-
-    // 2. Find the user question corresponding to this direct answer
+    // 1. Find the user question corresponding to this direct answer
     let question = '';
     const msgIdx = messages.findIndex((m) => m.id === targetMessage.id);
     if (msgIdx >= 0) {
@@ -188,7 +179,8 @@ export function ChatPage() {
       return;
     }
 
-    // 3. Setup provisional message and abort controller
+    // 2. Keep the direct answer (with its confidence) and append a separate
+    // sources-first research answer. The consent prompt itself is dismissed.
     const provisionalId = `research-${Date.now()}`;
     const provisionalMsg = {
       id: provisionalId,
@@ -201,14 +193,19 @@ export function ChatPage() {
       isStreaming: true,
     };
 
-    setMessages((prev) => [...prev, provisionalMsg]);
+    setMessages((prev) => [
+      ...prev.map((m) =>
+        m.id === targetMessage.id ? { ...m, promptDismissed: true } : m
+      ),
+      provisionalMsg,
+    ]);
     setIsStreaming(true);
     setStatus('Searching the web...');
 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
-    // 4. Initiate SSE Research Stream
+    // 3. Initiate SSE Research Stream
     try {
       await streamResearch(
         {
@@ -270,19 +267,10 @@ export function ChatPage() {
             setStatus('');
             setIsStreaming(false);
             abortControllerRef.current = null;
-            // Remove empty provisional message or annotate it
+            // The direct answer remains available; remove only the failed
+            // provisional research card.
             setMessages((prev) =>
-              prev.map((m) =>
-                m.id === provisionalId
-                  ? {
-                      ...m,
-                      isStreaming: false,
-                      content: m.content
-                        ? `${m.content}\n\n*(Research error occurred)*`
-                        : 'Failed to complete research.',
-                    }
-                  : m
-              )
+              prev.filter((m) => m.id !== provisionalId)
             );
             showToast(errData.message || 'Research stream error.', 'error');
           },
@@ -293,6 +281,9 @@ export function ChatPage() {
       setStatus('');
       setIsStreaming(false);
       abortControllerRef.current = null;
+      setMessages((prev) =>
+        prev.filter((m) => m.id !== provisionalId)
+      );
       showToast('Research stream was interrupted.', 'error');
     }
   };

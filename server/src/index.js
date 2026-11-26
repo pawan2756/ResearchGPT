@@ -3,16 +3,19 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 
+let mongodInstance = null;
+
 async function bootstrap() {
   try {
     logger.info(`Starting ResearchGPT server (Mock mode: ${env.IS_MOCK_MODE ? 'ACTIVE' : 'OFF'})...`);
-    
-    // Connect to MongoDB
+
+    // Connect when available. Local mock mode uses the in-process workspace
+    // store, so the application remains usable without MongoDB.
     try {
-      await mongoose.connect(env.MONGODB_URI);
-      logger.info('Connected to MongoDB successfully.');
+      await mongoose.connect(env.MONGODB_URI, { serverSelectionTimeoutMS: 2000 });
+      logger.info('Connected to local/remote MongoDB successfully.');
     } catch (dbErr) {
-      logger.error({ err: dbErr.message }, 'MongoDB connection failed. Continuing in degraded/offline mode.');
+      logger.warn({ err: dbErr.message }, 'MongoDB is unavailable; using the local in-memory workspace store.');
     }
 
     const app = createApp();
@@ -26,6 +29,9 @@ async function bootstrap() {
       logger.info(`Received ${signal}. Shutting down gracefully...`);
       server.close(async () => {
         await mongoose.connection.close(false);
+        if (mongodInstance) {
+          await mongodInstance.stop();
+        }
         logger.info('Closed database connection and HTTP server.');
         process.exit(0);
       });
